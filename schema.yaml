@@ -1,0 +1,10 @@
+openapi: 3.0.3
+info:
+  title: OpenAPI schema for template walrus-template-template
+components:
+  schemas:
+    variables:
+      type: object
+      x-walrus-ui:
+        groupOrder:
+        - Basic

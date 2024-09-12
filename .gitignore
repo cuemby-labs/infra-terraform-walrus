@@ -1,0 +1,25 @@
+# Files
+**/.terraform/*
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+.DS_Store
+.env
+.envrc
+
+# Dirs
+.sbin
+.cache
+.dist
+.idea
+.vscode
+.tfsec
