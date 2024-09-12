@@ -34,7 +34,7 @@ jobs:
             persist-credentials: false
         - name: Setup Toolbox
           timeout-minutes: 5
-          uses: actions/cache@v3
+          uses: actions/cache@v4
           with:
             # restore/save service binaries, e.g. terraform, terraform-docs, tflint and tfsec.
             key: toolbox-${{ runner.os }}
