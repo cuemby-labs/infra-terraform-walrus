@@ -34,12 +34,6 @@ variable "namespace_name" {
   default     = "walrus-system"
 }
 
-variable "host" {
-  description = "The host for the database connection."
-  type        = string
-  default     = "walrus.yourdomain.com"
-}
-
 variable "username" {
   description = "The username for the database connection."
   type        = string
