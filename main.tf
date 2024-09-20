@@ -7,6 +7,16 @@ locals {
 }
 
 #
+# Walrus Namespace Creation
+#
+
+resource "kubernetes_namespace" "walrus" {
+  metadata {
+    name = var.namespace_name
+  }
+}
+
+#
 # Walrus Ingress
 #
 
