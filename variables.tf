@@ -34,17 +34,17 @@ variable "namespace_name" {
   default     = "walrus-system"
 }
 
-variable "username" {
-  description = "The username for the database connection."
-  type        = string
-  default     = "admin"
-}
+# variable "username" {
+#   description = "The username for the database connection."
+#   type        = string
+#   default     = "admin"
+# }
 
-variable "password" {
-  description = "The password for the database connection."
-  type        = string
-  sensitive   = true
-}
+# variable "password" {
+#   description = "The password for the database connection."
+#   type        = string
+#   sensitive   = true
+# }
 
 #
 # Origin CA ingress variables
