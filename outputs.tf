@@ -116,13 +116,3 @@ output "walrus_resource_id" {
 #   description = "The Deployment for the Walrus application, including configuration for replicas, resource requests/limits, and probes."
 #   value = kubernetes_deployment.walrus
 # }
-
-
-#
-# Submodule output
-#
-
-output "submodule" {
-  value       = module.submodule.message
-  description = "The message from submodule."
-}

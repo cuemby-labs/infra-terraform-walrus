@@ -1,11 +1,9 @@
 locals {
   context = var.context
-}
-
-module "submodule" {
-  source = "./modules/submodule"
-
-  message = "Hello, submodule"
+  pg_data     = "/var/lib/postgresql/data/pgdata"
+  postgres_db = "walrus"
+  db_driver   = "postgresql"
+  db_source   = "$(DB_DRIVER)://$(DB_USER):$(DB_PASSWORD)@database:5432/$(DB_NAME)?sslmode=disable"
 }
 
 #
@@ -25,17 +23,17 @@ resource "kubernetes_ingress" "walrus_ingress" {
       "cert-manager.io/issuer-kind"                         = var.issuer_kind
       "cert-manager.io/issuer-group"                        = var.issuer_group
       "external-dns.alpha.kubernetes.io/cloudflare-proxied" = "true"
-      "external-dns.alpha.kubernetes.io/hostname"           = var.host
+      "external-dns.alpha.kubernetes.io/hostname"           = "walrus.${var.domain_name}"
     }
   }
   spec {
     ingress_class_name = var.ingress_class_name
     tls {
-      hosts       = [var.host]
-      secret_name = var.secret_name
+      hosts       = ["walrus.${var.domain_name}"]
+      secret_name = "walrus-${var.dash_domain_name}"
     }
     rule {
-      host = var.host
+      host = "walrus.${var.domain_name}"
       http {
         path {
           backend {
@@ -65,16 +63,18 @@ resource "kubernetes_secret" "walrus_secret" {
   data = {
     local_environment_mode = "disabled"
     enable_tls             = "false"
-    db_driver              = "postgres"
-    db_user                = "root"
-    db_password            = "Root123"
-    db_name                = "walrus"
-    minio_root_user        = "minio"
-    minio_root_password    = "Minio123"
+    db_driver              = local.db_driver
+    db_user                = var.db_user
+    db_password            = var.db_password
+    db_name                = local.postgres_db
+    minio_root_user        = var.minio_user
+    minio_root_password    = var.minio_password
     minio_bucket           = "walrus"
   }
   type = "Opaque"
 }
+
+
 
 #
 # Walrus Database
@@ -93,9 +93,9 @@ resource "kubernetes_config_map" "database_script" {
       set -o nounset
       set -o pipefail
 
-      if [[ ! -d ${PGDATA} ]]; then
-        mkdir -p ${PGDATA}
-        chown 9999:9999 ${PGDATA}
+      if [[ ! -d ${local.pg_data} ]]; then
+        mkdir -p ${local.pg_data}
+        chown 9999:9999 ${local.pg_data}
       fi
     EOT
 
@@ -106,7 +106,7 @@ resource "kubernetes_config_map" "database_script" {
       set -o nounset
       set -o pipefail
 
-      psql --no-password --username=${POSTGRES_USER} --dbname=${POSTGRES_DB} --command="SELECT 1"
+      psql --no-password --username=${var.db_user} --dbname=${local.postgres_db} --command="SELECT 1"
     EOT
   }
 }
@@ -288,7 +288,7 @@ resource "kubernetes_deployment" "database_deployment" {
           name = "script"
           config_map {
             name = "database-script"
-            default_mode = 0555
+            default_mode = "0555"
           }
         }
         volume {
@@ -448,7 +448,7 @@ resource "kubernetes_config_map" "identity_access_manager_script" {
       # validate database
       set +o errexit
       while true; do
-        if psql --command="SELECT 1" "${DB_SOURCE}" >/dev/null 2>&1; then
+        if psql --command="SELECT 1" "${local.db_source}" >/dev/null 2>&1; then
           break
         fi
         echo "waiting db to be ready ..."
@@ -461,12 +461,12 @@ resource "kubernetes_config_map" "identity_access_manager_script" {
       sed -i '/^tableNamePrefix =.*/d' app.conf
       echo "tableNamePrefix = casdoor_" >>app.conf
       sed -i '/^driverName =.*/d' app.conf
-      echo "driverName = \"${DB_DRIVER}\"" >>app.conf
+      echo "driverName = \"${local.db_driver}\"" >>app.conf
       sed -i '/^dataSourceName =.*/d' app.conf
-      echo "dataSourceName = \"${DB_SOURCE}\"" >>app.conf
+      echo "dataSourceName = \"${local.db_source}\"" >>app.conf
       sed -i '/^sessionConfig =.*/d' app.conf
       echo 'sessionConfig = {"enableSetCookie":true,"cookieName":"casdoor_session_id","cookieLifeTime":3600,"providerConfig":"/var/run/casdoor","gclifetime":3600,"domain":"","secure":false,"disableHTTPOnly":false}' >>app.conf
-      sed "s#${DB_PASSWORD}#***#g" app.conf
+      sed "s#${var.db_password}#***#g" app.conf
     EOT
   }
 }
@@ -630,7 +630,7 @@ resource "kubernetes_deployment" "identity_access_manager_deployment" {
           name = "script"
           config_map {
             name = "identity-access-manager-script"
-            default_mode = 0500
+            default_mode = "0500"
           }
         }
         volume {
@@ -1116,7 +1116,7 @@ resource "kubernetes_deployment" "walrus_server" {
           }
           env {
             name  = "SERVER_DATA_SOURCE_ADDRESS"
-            value = "${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}?sslmode=disable"
+            value = "${local.db_driver}://${var.db_user}:${var.db_password}@database:5432/${local.postgres_db}?sslmode=disable"
           }
           env {
             name  = "SERVER_CASDOOR_SERVER"

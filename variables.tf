@@ -59,13 +59,13 @@ variable "password" {
 variable "issuer" {
   description = "The name of the issuer used by Cert-Manager to issue the certificate."
   type        = string
-  default     = "origin-ca-issuer-hv"
+  default     = "origin-ca-issuer"
 }
 
 variable "issuer_kind" {
   description = "The kind of issuer used by Cert-Manager, such as ClusterIssuer or other custom issuers."
   type        = string
-  default     = "OriginIssuer"
+  default     = "ClusterOriginIssuer"
 }
 
 variable "issuer_group" {
@@ -80,8 +80,42 @@ variable "ingress_class_name" {
   default     = "nginx"
 }
 
-variable "secret_name" {
-  description = "The name of the Kubernetes secret that stores the TLS certificate for the Walrus ingress."
+variable "domain_name" {
   type        = string
-  default     = "walrus-yourdomain-com"
+  description = "domain name for Harbor, e.g. 'dev.domainname.com'"
+  default     = "dev.domainname.com"
+}
+
+variable "dash_domain_name" {
+  type        = string
+  description = "domain name with dash, e.g. 'dev-domainname-com'"
+  default     = "dev-domainname-com"
+}
+
+#
+# DB variables
+#
+
+variable "db_user" {
+  description = "The username for the postgresql database connection."
+  type        = string
+  default     = "root"
+}
+
+variable "db_password" {
+  description = "The password for the postgresql database connection."
+  type        = string
+  sensitive   = true
+}
+
+variable "minio_user" {
+  description = "The username for Minio."
+  type        = string
+  default     = "minio"
+}
+
+variable "minio_password" {
+  description = "The password for Minio."
+  type        = string
+  sensitive   = true
 }

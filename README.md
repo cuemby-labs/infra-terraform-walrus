@@ -5,7 +5,19 @@ Start here to create an awesome Walrus template.
 ## Usage
 
 ```hcl
+module "walrus" {
+  source  = "./modules/walrus"
 
+  namespace_name      = "walrus-system"
+  host                = "walrus.cuemby.net"
+  username            = "admin"
+  password            = "Cuemby123"
+  issuer              = "origin-ca-issuer-hv"
+  issuer_kind         = "OriginIssuer"
+  issuer_group        = "cert-manager.k8s.cloudflare.com"
+  ingress_class_name  = "nginx"
+  secret_name         = "walrus-cuemby-net"
+}
 ```
 
 ## Examples
