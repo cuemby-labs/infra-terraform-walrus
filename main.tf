@@ -7,6 +7,7 @@ locals {
 #
 
 resource "kubernetes_ingress_v1" "walrus_ingress" {
+  depends_on = [kubectl_manifest.apply_manifests]
   metadata {
     name      = "walrus"
     namespace = "walrus-system"
