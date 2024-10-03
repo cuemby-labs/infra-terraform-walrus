@@ -6,7 +6,7 @@ locals {
 # Walrus Ingress
 #
 
-resource "kubernetes_ingress" "walrus_ingress" {
+resource "kubernetes_ingress_v1" "walrus_ingress" {
   metadata {
     name      = "walrus"
     namespace = "walrus-system"
@@ -33,8 +33,12 @@ resource "kubernetes_ingress" "walrus_ingress" {
       http {
         path {
           backend {
-            service_name = "walrus"
-            service_port = 80
+            service {
+              name = "walrus"
+              port { 
+                number = 80
+              }
+            }  
           }
           path     = "/"
         }
