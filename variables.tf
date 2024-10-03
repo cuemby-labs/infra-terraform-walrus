@@ -25,28 +25,6 @@ EOF
 }
 
 #
-# Walrus varibales
-#
-
-variable "namespace_name" {
-  description = "The Kubernetes namespace where the resources will be created."
-  type        = string
-  default     = "walrus-system"
-}
-
-# variable "username" {
-#   description = "The username for the database connection."
-#   type        = string
-#   default     = "admin"
-# }
-
-# variable "password" {
-#   description = "The password for the database connection."
-#   type        = string
-#   sensitive   = true
-# }
-
-#
 # Origin CA ingress variables
 #
 
@@ -84,32 +62,4 @@ variable "dash_domain_name" {
   type        = string
   description = "domain name with dash, e.g. 'dev-domainname-com'"
   default     = "dev-domainname-com"
-}
-
-#
-# DB variables
-#
-
-variable "db_user" {
-  description = "The username for the postgresql database connection."
-  type        = string
-  default     = "root"
-}
-
-variable "db_password" {
-  description = "The password for the postgresql database connection."
-  type        = string
-  sensitive   = true
-}
-
-variable "minio_user" {
-  description = "The username for Minio."
-  type        = string
-  default     = "minio"
-}
-
-variable "minio_password" {
-  description = "The password for Minio."
-  type        = string
-  sensitive   = true
 }

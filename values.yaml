@@ -1,15 +1,70 @@
+# Basic
+# - 1. Configure TLS termination.
+# - 1.1. By default, the TLS termination is enabling,
+#        please adjust the following `walrus` Ingress to adopt the TLS capability from other certificate manager.
+# - 1.2. To disable TLS termination and consume the self-signed certificate of Walrus,
+#        please adjust as below.
+#        + Comment out the below `walrus` Ingress.
+#        + Uncomment the below `walrus` Service.
+#        + Configure the value of `enable_tls` of `walrus` Secret to `true`.
+# - 1.3. To consume the customized certificate of Walrus,
+#        which is similar to #2.2, but take few more steps.
+#        + Uncomment the below `walrus-custom-tls` Secret.
+#        + Fill the `tls.key` and `tls.crt` of `walrus-custom-tls` Secret.
+#        + Uncomment the `SERVER_TLS_CERT_FILE` and `SERVER_TLS_KEY_FILE` envs of `walrus` Deployment.
+# - 2.   It's optional to configure the type/mode/size of `database` PersistentVolumeClaim.
+#
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ${namespace_name}
+  name: walrus-system
   labels:
     "app.kubernetes.io/part-of": "walrus"
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   namespace: walrus-system
+#   name: walrus
+#   labels:
+#     "app.kubernetes.io/part-of": "walrus"
+#     "app.kubernetes.io/component": "entrance"
+# spec:
+#   defaultBackend:
+#     service:
+#       name: walrus
+#       port:
+#         number: 80
+# Uncomment the following lines if disabling TLS termination.
+#
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  namespace: walrus-system
+#  name: walrus
+#  labels:
+#    "app.kubernetes.io/part-of": "walrus"
+#    "app.kubernetes.io/component": "entrance"
+#spec:
+#  selector:
+#    "app.kubernetes.io/part-of": "walrus"
+#    "app.kubernetes.io/component": "walrus"
+#  sessionAffinity: ClientIP
+#  type: LoadBalancer
+#  ports:
+#    - name: http
+#      port: 80
+#      targetPort: http
+#    - name: https
+#      port: 443
+#      targetPort: https
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: walrus
   labels:
     "app.kubernetes.io/part-of": "walrus"
@@ -19,21 +74,36 @@ stringData:
   #
   enable_tls: "false"
   db_driver: "postgres"
-  db_user: "${db_user}"
-  db_password: "${db_password}"
+  db_user: "root"
+  db_password: "Root123"
   db_name: "walrus"
-  minio_root_user: "${minio_user}"
-  minio_root_password: "${minio_password}"
+  minio_root_user: "minio"
+  minio_root_password: "Minio123"
   minio_bucket: "walrus"
-
+# Uncomment the following lines if consuming custom TLS.
 #
+#---
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  namespace: walrus-system
+#  name: walrus-custom-tls
+#  labels:
+#    "app.kubernetes.io/part-of": "walrus"
+#    "app.kubernetes.io/component": "configuration"
+#type: kubernetes.io/tls
+#stringData:
+#  "tls.crt": ""
+#  "tls.key": ""
+
+
 # Database
 #
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: database-script
 data:
   "init.sh": |
@@ -61,7 +131,7 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: database
 spec:
   selector:
@@ -75,7 +145,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: database
   labels:
     "app.kubernetes.io/part-of": "walrus"
@@ -92,7 +162,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: database
   labels:
     "app.kubernetes.io/part-of": "walrus"
@@ -201,7 +271,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: minio
   labels:
     "app.kubernetes.io/part-of": "walrus"
@@ -216,7 +286,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: minio
 spec:
   selector:
@@ -232,7 +302,7 @@ kind: Deployment
 metadata:
   # This name uniquely identifies the Deployment
   name: minio
-  namespace: ${namespace_name}
+  namespace: walrus-system
   labels:
     "app.kubernetes.io/part-of": "walrus"
     "app.kubernetes.io/component": "minio"
@@ -294,7 +364,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: identity-access-manager-script
 data:
   "init.sh": |
@@ -331,7 +401,7 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: identity-access-manager
 spec:
   selector:
@@ -345,7 +415,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: identity-access-manager
   labels:
     "app.kubernetes.io/part-of": "walrus"
@@ -460,7 +530,7 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: walrus
   labels:
     "app.kubernetes.io/part-of": "walrus"
@@ -495,7 +565,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: walrus
-    namespace: ${namespace_name}
+    namespace: walrus-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -504,7 +574,7 @@ roleRef:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: walrus-deployer
   labels:
     "app.kubernetes.io/part-of": "walrus"
@@ -513,7 +583,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: walrus-deployer
   labels:
     "app.kubernetes.io/part-of": "walrus"
@@ -538,7 +608,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: walrus-deployer
   labels:
     "app.kubernetes.io/part-of": "walrus"
@@ -555,7 +625,7 @@ roleRef:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: walrus-workflow
   labels:
     "app.kubernetes.io/part-of": "walrus"
@@ -564,7 +634,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: walrus-workflow
   labels:
     "app.kubernetes.io/part-of": "walrus"
@@ -616,7 +686,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: walrus-workflow
   labels:
     "app.kubernetes.io/part-of": "walrus"
@@ -632,7 +702,7 @@ roleRef:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: walrus
   labels:
     "app.kubernetes.io/part-of": "walrus"
@@ -649,7 +719,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: walrus
 spec:
   selector:
@@ -664,7 +734,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: ${namespace_name}
+  namespace: walrus-system
   name: walrus
   labels:
     "app.kubernetes.io/part-of": "walrus"

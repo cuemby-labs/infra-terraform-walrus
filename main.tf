@@ -9,7 +9,7 @@ locals {
 resource "kubernetes_ingress" "walrus_ingress" {
   metadata {
     name      = "walrus"
-    namespace = var.namespace_name
+    namespace = "walrus-system"
     labels    = {
       "app.kubernetes.io/part-of"   = "walrus"
       "app.kubernetes.io/component" = "walrus"
@@ -47,6 +47,12 @@ resource "kubernetes_ingress" "walrus_ingress" {
 # Walrus Manifest
 #
 
-resource "kubernetes_manifest" "app_manifest" {
-  manifest = yamldecode(file("value.yaml"))
+data "kubectl_file_documents" "manifest_files" {
+  content = file("${path.module}/values.yaml")
+}
+
+resource "kubectl_manifest" "apply_manifests" {
+  for_each  = { for index, doc in data.kubectl_file_documents.manifest_files.documents : index => doc }
+
+  yaml_body = each.value
 }
