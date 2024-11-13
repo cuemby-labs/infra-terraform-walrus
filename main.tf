@@ -1,63 +1,41 @@
-locals {
-  context = var.context
-}
-
 #
-# Walrus Ingress
+# Origin CA Resources
 #
 
-resource "kubernetes_ingress_v1" "walrus_ingress" {
-  depends_on = [kubectl_manifest.apply_manifests]
+resource "kubernetes_namespace" "walrus_system" {
   metadata {
-    name      = "walrus"
-    namespace = "walrus-system"
-    labels    = {
-      "app.kubernetes.io/part-of"   = "walrus"
-      "app.kubernetes.io/component" = "walrus"
-    }
-    annotations = {
-      "cert-manager.io/issuer"                              = var.issuer
-      "cert-manager.io/issuer-kind"                         = var.issuer_kind
-      "cert-manager.io/issuer-group"                        = var.issuer_group
-      "external-dns.alpha.kubernetes.io/cloudflare-proxied" = "true"
-      "external-dns.alpha.kubernetes.io/hostname"           = "walrus.${var.domain_name}"
-    }
-  }
-  spec {
-    ingress_class_name = var.ingress_class_name
-    tls {
-      hosts       = ["walrus.${var.domain_name}"]
-      secret_name = "walrus-${var.dash_domain_name}"
-    }
-    rule {
-      host = "walrus.${var.domain_name}"
-      http {
-        path {
-          backend {
-            service {
-              name = "walrus"
-              port { 
-                number = 80
-              }
-            }  
-          }
-          path     = "/"
-        }
-      }
-    }
+    name = var.namespace_name
   }
 }
 
-#
-# Walrus Manifest
-#
+data "template_file" "manifest_template" {
+  
+  template = file("${path.module}/values.yaml.tpl")
+  vars     = {
+    namespace_name   = var.namespace_name,
+    issuer_name      = var.issuer_name,
+    issuer_kind      = var.issuer_kind,
+    dash_domain_name = local.dash_domain_name
+  }
+}
 
 data "kubectl_file_documents" "manifest_files" {
-  content = file("${path.module}/values.yaml")
+
+  content = data.template_file.manifest_template.rendered
 }
 
 resource "kubectl_manifest" "apply_manifests" {
-  for_each  = { for index, doc in data.kubectl_file_documents.manifest_files.documents : index => doc }
+  depends_on = [ module.kubernetes_manifest ]
 
+  for_each  = data.kubectl_file_documents.manifest_files.manifests
   yaml_body = each.value
+}
+
+#
+# Walrus Information
+#
+
+locals {
+  context          = var.context
+  dash_domain_name = replace(var.domain_name, ".", "-")
 }
