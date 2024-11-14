@@ -25,7 +25,6 @@ data "kubectl_file_documents" "manifest_files" {
 }
 
 resource "kubectl_manifest" "apply_manifests" {
-  depends_on = [ module.kubernetes_manifest ]
 
   for_each  = data.kubectl_file_documents.manifest_files.manifests
   yaml_body = each.value
