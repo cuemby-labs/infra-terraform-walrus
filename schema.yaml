@@ -1,62 +1,43 @@
 openapi: 3.0.3
 info:
-  title: OpenAPI schema for template .
+  title: OpenAPI schema for Walrus template .
 components:
   schemas:
     variables:
       type: object
       properties:
-        issuer:
-          title: Issuer
+        namespace_name:
+          title: Namespace Name
           type: string
-          description: The name of the issuer used by Cert-Manager to issue the certificate.
-          default: origin-ca-issuer
+          description: The namespace where resources will be created.
+          default: walrus-system
           x-walrus-ui:
             group: Basic
-            order: 2
-        issuer_kind:
-          title: Issuer Kind
-          type: string
-          description: The kind of issuer used by Cert-Manager, such as ClusterIssuer
-            or other custom issuers.
-          default: ClusterOriginIssuer
-          x-walrus-ui:
-            group: Basic
-            order: 3
-        issuer_group:
-          title: Issuer Group
-          type: string
-          description: The group of the issuer, which organizes different CRDs like
-            the ones from Cloudflare.
-          default: cert-manager.k8s.cloudflare.com
-          x-walrus-ui:
-            group: Basic
-            order: 4
-        ingress_class_name:
-          title: Ingress Class Name
-          type: string
-          description: The name of the ingress class to be used for routing traffic.
-            Typically specifies the type of ingress controller, like nginx or traefik.
-          default: nginx
-          x-walrus-ui:
-            group: Basic
-            order: 5
+            order: 1
         domain_name:
           title: Domain Name
           type: string
-          description: domain name for Harbor, e.g. 'dev.domainname.com'
-          default: dev.domainname.com
+          description: Domain name.
+          default: dev.domain.com
           x-walrus-ui:
             group: Basic
-            order: 6
-        dash_domain_name:
-          title: Dash Domain Name
+            order: 2
+        issuer_name:
+          title: Issuer Name
           type: string
-          description: domain name with dash, e.g. 'dev-domainname-com'
-          default: dev-domainname-com
+          description: Origin issuer name
+          default: origin-ca-issuer
           x-walrus-ui:
             group: Basic
-            order: 7
+            order: 3
+        issuer_kind:
+          title: Issuer Kind
+          type: string
+          description: Origin issuer kind
+          default: ClusterOriginIssuer
+          x-walrus-ui:
+            group: Basic
+            order: 4
       x-walrus-ui:
         groupOrder:
         - Basic
