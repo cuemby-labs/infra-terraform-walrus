@@ -38,3 +38,9 @@ locals {
   context          = var.context
   dash_domain_name = replace(var.domain_name, ".", "-")
 }
+
+module "submodule" {
+  source = "./modules/submodule"
+
+  message = "Hello, submodule"
+}
