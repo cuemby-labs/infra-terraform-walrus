@@ -45,5 +45,5 @@ jobs:
         - name: Build
           run: make ci
           env:
-            LINT_DIRTY: "true"
+            LINT_DIRTY: "false"
             WITH_COLOR: "false"
